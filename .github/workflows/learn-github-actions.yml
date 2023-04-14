@@ -1,5 +1,5 @@
 env:
-  IMAGE_REGISTRY: ${{ vars.IMAGE_REGISTRY }}
+  IMAGE_REGISTRY: ${{ secrets.IMAGE_REGISTRY }}
   IMAGE_NAME: ${{ github.repository }}
 
 on: [push]
