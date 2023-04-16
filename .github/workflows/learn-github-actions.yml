@@ -2,6 +2,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   THE_REPOSITORY_PATH: ${{ secrets.REPOSITORY_PATH }}
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+  SERVICE_ACCOUNT_EMAIL_ADDRESS: ${{ secrets.SERVICE_ACCOUNT_EMAIL_ADDRESS }}
 
 on: [push]
 
@@ -15,6 +16,8 @@ jobs:
     outputs:
       image: ${{ steps.image.outputs.image }}
       digest: ${{ steps.build.outputs.digest }}
+      workload_identity_provider: ${{ steps.idprov.outputs.workload_identity_provider }}
+      service_account: ${{ steps.sa.outputs.service_account }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -61,8 +64,18 @@ jobs:
           # available to the inputs of a reusable workflow call.
           image_name="${THE_REPOSITORY_PATH}/${IMAGE_NAME}"
           echo "image=$image_name" >> "$GITHUB_OUTPUT"
+
+      - name: Output workload_identity_provider
+        id: idprov
+        run: |
           the_workload_identity_provider=${WORKLOAD_IDENTITY_PROVIDER}
           echo "workload_identity_provider=$the_workload_identity_provider" >> "$GITHUB_OUTPUT"
+
+      - name: Output workload_identity_provider
+        id: sa
+        run: |
+          the_service_account=${SERVICE_ACCOUNT_EMAIL_ADDRESS}
+          echo "service_account=$the_service_account" >> "$GITHUB_OUTPUT"
 
   # This step calls the container workflow to generate provenance and push it to
   # the container registry.
@@ -76,7 +89,8 @@ jobs:
     with:
       image: ${{ needs.build.outputs.image }}
       digest: ${{ needs.build.outputs.digest }}
-      registry-username: ${{ github.actor }}
       gcp-workload-identity-provider: ${{ needs.build.outputs.workload_identity_provider }}
+      gcp-service-account: ${{ needs.build.outputs.service_account }}
+      registry-username: ${{ github.actor }}
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
