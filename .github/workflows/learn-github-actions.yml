@@ -1,9 +1,8 @@
 env:
   IMAGE_NAME: ${{ github.repository }}
-  THE_REPOSITORY_PATH: ${{ secrets.REPOSITORY_PATH }}
-  WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-  SERVICE_ACCOUNT_EMAIL_ADDRESS: ${{ secrets.SERVICE_ACCOUNT_EMAIL_ADDRESS }}
-  SOMETHING_SPECIAL: a_nice_meal
+  REPOSITORY_PATH: ${{ vars.REPOSITORY_PATH }}
+  WORKLOAD_IDENTITY_PROVIDER: ${{ vars.WORKLOAD_IDENTITY_PROVIDER }}
+  SERVICE_ACCOUNT: ${{ vars.SERVICE_ACCOUNT }}
 
 on: [push]
 
@@ -17,9 +16,8 @@ jobs:
     outputs:
       image: ${{ steps.image.outputs.image }}
       digest: ${{ steps.build.outputs.digest }}
-      workload_identity_provider: ${{ steps.idprov.outputs.workload_identity_provider }}
-      service_account: ${{ steps.sa.outputs.service_account }}
-      test_run: ${{ steps.testrun.outputs.testrun }}
+      workload_identity_provider: ${{ steps.idprov.outputs.widp }}
+      service_account: ${{ steps.sa.outputs.sa }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -64,7 +62,7 @@ jobs:
         run: |
           # NOTE: Set the image as an output because the `env` context is not
           # available to the inputs of a reusable workflow call.
-          image_name="${THE_REPOSITORY_PATH}/${IMAGE_NAME}"
+          image_name="${REPOSITORY_PATH}/${IMAGE_NAME}"
           echo image=$image_name >> "$GITHUB_OUTPUT"
 
       - name: Output workload_identity_provider
@@ -76,14 +74,9 @@ jobs:
       - name: Output service_account
         id: sa
         run: |
-          service_account=${SERVICE_ACCOUNT_EMAIL_ADDRESS}
+          service_account=${SERVICE_ACCOUNT}
           echo sa=$service_account >> "$GITHUB_OUTPUT"
 
-      - name: Output test run
-        id: testrun
-        run: |
-          a_test_run=${SOMETHING_SPECIAL}
-          echo testrun=$a_test_run >> "$GITHUB_OUTPUT"
 
   # This step calls the container workflow to generate provenance and push it to
   # the container registry.
@@ -98,7 +91,6 @@ jobs:
           echo ${{ needs.build.outputs.digest }}
           echo ${{ needs.build.outputs.workload_identity_provider }}
           echo ${{ needs.build.outputs.service_account }}
-          echo ${{ needs.build.outputs.test_run }}
           echo ${{ github.actor }}
           echo ${{ secrets.GITHUB_TOKEN }}
 
@@ -112,10 +104,10 @@ jobs:
   #     packages: write # for uploading attestations.
   #   uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.5.0
   #   with:
-  #     image: ${{ needs.build.outputs.image }}
+  #     image: ${{ secrets.REPOSITORY_PATH }}/${{env.IMAGE_NAME}}}
   #     digest: ${{ needs.build.outputs.digest }}
-  #     gcp-workload-identity-provider: ${{ needs.build.outputs.workload_identity_provider }}
-  #     gcp-service-account: ${{ needs.build.outputs.service_account }}
+  #     gcp-workload-identity-provider:  ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+  #     gcp-service-account: ${{ secrets.SERVICE_ACCOUNT_EMAIL_ADDRESS }}
   #     registry-username: ${{ github.actor }}
   #   secrets:
   #     registry-password: ${{ secrets.GITHUB_TOKEN }}
