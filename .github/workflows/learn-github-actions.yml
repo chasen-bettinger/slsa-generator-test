@@ -3,6 +3,7 @@ env:
   THE_REPOSITORY_PATH: ${{ secrets.REPOSITORY_PATH }}
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
   SERVICE_ACCOUNT_EMAIL_ADDRESS: ${{ secrets.SERVICE_ACCOUNT_EMAIL_ADDRESS }}
+  SOMETHING_SPECIAL: a_nice_meal
 
 on: [push]
 
@@ -18,6 +19,7 @@ jobs:
       digest: ${{ steps.build.outputs.digest }}
       workload_identity_provider: ${{ steps.idprov.outputs.workload_identity_provider }}
       service_account: ${{ steps.sa.outputs.service_account }}
+      test_run: ${{ steps.testrun.outputs.testrun }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
@@ -63,34 +65,57 @@ jobs:
           # NOTE: Set the image as an output because the `env` context is not
           # available to the inputs of a reusable workflow call.
           image_name="${THE_REPOSITORY_PATH}/${IMAGE_NAME}"
-          echo $image_name >> "$GITHUB_OUTPUT"
+          echo image=$image_name >> "$GITHUB_OUTPUT"
 
       - name: Output workload_identity_provider
         id: idprov
         run: |
           workload_identity_provider=${WORKLOAD_IDENTITY_PROVIDER}
-          echo $workload_identity_provider >> "$GITHUB_OUTPUT"
+          echo widp=$workload_identity_provider >> "$GITHUB_OUTPUT"
 
       - name: Output service_account
         id: sa
         run: |
           service_account=${SERVICE_ACCOUNT_EMAIL_ADDRESS}
-          echo $service_account >> "$GITHUB_OUTPUT"
+          echo sa=$service_account >> "$GITHUB_OUTPUT"
+
+      - name: Output test run
+        id: testrun
+        run: |
+          a_test_run=${SOMETHING_SPECIAL}
+          echo testrun=$a_test_run >> "$GITHUB_OUTPUT"
 
   # This step calls the container workflow to generate provenance and push it to
   # the container registry.
   provenance:
     needs: [build]
-    permissions:
-      actions: read # for detecting the Github Actions environment.
-      id-token: write # for creating OIDC tokens for signing.
-      packages: write # for uploading attestations.
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.5.0
-    with:
-      image: ${{ needs.build.outputs.image }}
-      digest: ${{ needs.build.outputs.digest }}
-      gcp-workload-identity-provider: ${{ needs.build.outputs.workload_identity_provider }}
-      gcp-service-account: ${{ needs.build.outputs.service_account }}
-      registry-username: ${{ github.actor }}
-    secrets:
-      registry-password: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: test
+        run: |
+          echo "test"
+          echo ${{ needs.build.outputs.image }}
+          echo ${{ needs.build.outputs.digest }}
+          echo ${{ needs.build.outputs.workload_identity_provider }}
+          echo ${{ needs.build.outputs.service_account }}
+          echo ${{ needs.build.outputs.test_run }}
+          echo ${{ github.actor }}
+          echo ${{ secrets.GITHUB_TOKEN }}
+
+  # This step calls the container workflow to generate provenance and push it to
+  # the container registry.
+  # provenance:
+  #   needs: [build]
+  #   permissions:
+  #     actions: read # for detecting the Github Actions environment.
+  #     id-token: write # for creating OIDC tokens for signing.
+  #     packages: write # for uploading attestations.
+  #   uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.5.0
+  #   with:
+  #     image: ${{ needs.build.outputs.image }}
+  #     digest: ${{ needs.build.outputs.digest }}
+  #     gcp-workload-identity-provider: ${{ needs.build.outputs.workload_identity_provider }}
+  #     gcp-service-account: ${{ needs.build.outputs.service_account }}
+  #     registry-username: ${{ github.actor }}
+  #   secrets:
+  #     registry-password: ${{ secrets.GITHUB_TOKEN }}
