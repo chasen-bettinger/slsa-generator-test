@@ -63,19 +63,19 @@ jobs:
           # NOTE: Set the image as an output because the `env` context is not
           # available to the inputs of a reusable workflow call.
           image_name="${THE_REPOSITORY_PATH}/${IMAGE_NAME}"
-          echo "image=$image_name" >> "$GITHUB_OUTPUT"
+          echo $image_name >> "$GITHUB_OUTPUT"
 
       - name: Output workload_identity_provider
         id: idprov
         run: |
-          the_workload_identity_provider=${WORKLOAD_IDENTITY_PROVIDER}
-          echo "workload_identity_provider=$the_workload_identity_provider" >> "$GITHUB_OUTPUT"
+          workload_identity_provider=${WORKLOAD_IDENTITY_PROVIDER}
+          echo $workload_identity_provider >> "$GITHUB_OUTPUT"
 
-      - name: Output workload_identity_provider
+      - name: Output service_account
         id: sa
         run: |
-          the_service_account=${SERVICE_ACCOUNT_EMAIL_ADDRESS}
-          echo "service_account=$the_service_account" >> "$GITHUB_OUTPUT"
+          service_account=${SERVICE_ACCOUNT_EMAIL_ADDRESS}
+          echo $service_account >> "$GITHUB_OUTPUT"
 
   # This step calls the container workflow to generate provenance and push it to
   # the container registry.
