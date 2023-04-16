@@ -1,6 +1,7 @@
 env:
   IMAGE_NAME: ${{ github.repository }}
   THE_REPOSITORY_PATH: ${{ secrets.REPOSITORY_PATH }}
+  WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
 on: [push]
 
@@ -60,6 +61,8 @@ jobs:
           # available to the inputs of a reusable workflow call.
           image_name="${THE_REPOSITORY_PATH}/${IMAGE_NAME}"
           echo "image=$image_name" >> "$GITHUB_OUTPUT"
+          the_workload_identity_provider="${WORKLOAD_IDENTITY_PROVIDER}"
+          echo "workload_identity_provider=$the_workload_identity_provider" >> "$GITHUB_OUTPUT"
 
   # This step calls the container workflow to generate provenance and push it to
   # the container registry.
@@ -74,5 +77,6 @@ jobs:
       image: ${{ needs.build.outputs.image }}
       digest: ${{ needs.build.outputs.digest }}
       registry-username: ${{ github.actor }}
+      gcp-workload-identity-provider: ${{ needs.build.outputs.workload_identity_provider }}
     secrets:
       registry-password: ${{ secrets.GITHUB_TOKEN }}
