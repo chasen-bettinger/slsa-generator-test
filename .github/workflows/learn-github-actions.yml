@@ -80,34 +80,34 @@ jobs:
 
   # This step calls the container workflow to generate provenance and push it to
   # the container registry.
-  provenance:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: test
-        run: |
-          echo "test"
-          echo ${{ needs.build.outputs.image }}
-          echo ${{ needs.build.outputs.digest }}
-          echo ${{ needs.build.outputs.workload_identity_provider }}
-          echo ${{ needs.build.outputs.service_account }}
-          echo ${{ github.actor }}
-          echo ${{ secrets.GITHUB_TOKEN }}
+  # provenance:
+  #   needs: [build]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: test
+  #       run: |
+  #         echo "test"
+  #         echo ${{ needs.build.outputs.image }}
+  #         echo ${{ needs.build.outputs.digest }}
+  #         echo ${{ needs.build.outputs.workload_identity_provider }}
+  #         echo ${{ needs.build.outputs.service_account }}
+  #         echo ${{ github.actor }}
+  #         echo ${{ secrets.GITHUB_TOKEN }}
 
   # This step calls the container workflow to generate provenance and push it to
   # the container registry.
-  # provenance:
-  #   needs: [build]
-  #   permissions:
-  #     actions: read # for detecting the Github Actions environment.
-  #     id-token: write # for creating OIDC tokens for signing.
-  #     packages: write # for uploading attestations.
-  #   uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.5.0
-  #   with:
-  #     image: ${{ secrets.REPOSITORY_PATH }}/${{env.IMAGE_NAME}}}
-  #     digest: ${{ needs.build.outputs.digest }}
-  #     gcp-workload-identity-provider:  ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-  #     gcp-service-account: ${{ secrets.SERVICE_ACCOUNT_EMAIL_ADDRESS }}
-  #     registry-username: ${{ github.actor }}
-  #   secrets:
-  #     registry-password: ${{ secrets.GITHUB_TOKEN }}
+  provenance:
+    needs: [build]
+    permissions:
+      actions: read # for detecting the Github Actions environment.
+      id-token: write # for creating OIDC tokens for signing.
+      packages: write # for uploading attestations.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.5.0
+    with:
+      image: ${{ needs.build.outputs.image }}
+      digest: ${{ needs.build.outputs.digest }}
+      gcp-workload-identity-provider: ${{ needs.build.outputs.workload_identity_provider }}
+      gcp-service-account: ${{ needs.build.outputs.service_account }}
+      registry-username: ${{ github.actor }}
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}
