@@ -1,5 +1,6 @@
 env:
   IMAGE_NAME: ${{ github.repository }}
+  REPOSITORY_PATH: ${{ vars.REPOSITORY_PATH }}
 
 on: [push]
 
